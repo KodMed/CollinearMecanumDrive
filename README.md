@@ -1,4 +1,8 @@
 # The Collinear Mecanum Drive
+##KodMed Variant
+The code is planned to be modified in order to meet the needs of the robot Cliffhanger. So far the required libraries and the necessary path changes in the code is being made. The code is currently being tested on the MATLAB R2019b version.
+
+
 ## About
 This is a large portion of the code developed during my research into the Collinear Mecanum Drive (CMD), a novel omnidirectional  dynamically stable mobile robot locomotion technology. This code covers dynamics model derivation, various controller and planner derivations, and dynamics simulation and visualisation in Simulink. The codebase has been tested in Matlab R2019b. I am not actively supporting this codebase, but will be happy to assist with queries from other students/researchers. To see the CMD prototype developed during my PhD in action please visit https://www.youtube.com/watch?v=EG2pka4Bczg.
 
