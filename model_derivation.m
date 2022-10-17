@@ -461,7 +461,7 @@ out.pv.pi_s_2 = v(1:3) + pinv(out.pv.Mp(4,1:3))*out.pv.Mp(4,4)*v(4);
 % Define expression and function for calculation of dvy
 out.pv.dvy_tau = substituteParameters(out.pv.dynamics(2));
 state = sym('state',[8 1]);
-out.pv.dvy_tau_fun = matlabFunction(subs(out.pv.dvy_tau, [p;v], state), 'Vars', {state, tau_i}, 'File', 'Feedback_Linearisation/generatedFunctions/dvy_tau');
+out.pv.dvy_tau_fun = matlabFunction(subs(out.pv.dvy_tau, [p;v], state), 'Vars', {state, tau_i}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/dvy_tau');
 
 
 % Arrange model in form d(p,v) = f(p,v) + g u
@@ -502,9 +502,9 @@ out.pv.de = [
 out.pv.Ae = subs(jacobian(out.pv.de, [e_x_int;e_y_int;e_phi_int;e]), [e_x_int; e_y_int; e_phi_int; e;e_u], [zeros(11,1); zeros(nw,1)]);
 out.pv.Be = subs(jacobian(out.pv.de, e_u), [e_x_int; e_y_int; e_phi_int; e;e_u], [zeros(11,1); zeros(nw,1)]);
 
-out.pv.Ae_fun = matlabFunction(simplify(substituteParameters(out.pv.Ae),100), 'Vars', {xr, tau_r}, 'File', 'Differential_Flatness/generatedFunctions/TVLQR_A_fun');
-out.pv.Be_fun = matlabFunction(simplify(substituteParameters(out.pv.Be),100), 'Vars', {xr, tau_r}, 'File', 'Differential_Flatness/generatedFunctions/TVLQR_B_fun');
-out.pv.e_fun = matlabFunction(subs([subs(e_z, e, xr-[p;v]); formula(R_EB_2d.')*[xr(1)-p(1);xr(2)-p(2)]; xr(3:8)-[p(3:4);v]], [p;v], state), 'Vars', {state,xr,[e_x_int;e_y_int;e_phi_int]}, 'File', 'Differential_Flatness/generatedFunctions/TVLQR_e_fun');
+out.pv.Ae_fun = matlabFunction(simplify(substituteParameters(out.pv.Ae),100), 'Vars', {xr, tau_r}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/TVLQR_A_fun');
+out.pv.Be_fun = matlabFunction(simplify(substituteParameters(out.pv.Be),100), 'Vars', {xr, tau_r}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/TVLQR_B_fun');
+out.pv.e_fun = matlabFunction(subs([subs(e_z, e, xr-[p;v]); formula(R_EB_2d.')*[xr(1)-p(1);xr(2)-p(2)]; xr(3:8)-[p(3:4);v]], [p;v], state), 'Vars', {state,xr,[e_x_int;e_y_int;e_phi_int]}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/TVLQR_e_fun');
 
 %% Feedback linearisation
 % Uses the fully parametrised model, using Pathak's method but for the more general case
@@ -605,7 +605,7 @@ out.pv.dvy = out.pv.f(6) - out.pv.gHat(6,1)*out.pv.f(5) - out.pv.gHat(6,2)*out.p
 state = sym('state',[8 1]);
 fun = subs(-dvy + substituteParameters(out.pv.dvy), x, state);
 dFun = jacobian(fun,state(4));
-out.pv.f_solve_fdvy_for_theta_p_x = matlabFunction(fun, dFun, 'Vars', {state,w,dvy}, 'Outputs', {'fun','dFun'}, 'File', 'Feedback_Linearisation/generatedFunctions/f_solve_fdvy_theta_p_x');
+out.pv.f_solve_fdvy_for_theta_p_x = matlabFunction(fun, dFun, 'Vars', {state,w,dvy}, 'Outputs', {'fun','dFun'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/f_solve_fdvy_theta_p_x');
 
 % Define steady state (dtheta_p=w3=0) dvy's
 syms dvy_ss real;
@@ -613,7 +613,7 @@ out.pv.dvy_ss = subs(substituteParameters(out.pv.dvy), {w(3) dtheta_p}, {0 0});
 
 % Convert to function
 state = sym('state',[8 1]);
-out.pv.dvy_ss_fun = matlabFunction(formula(subs(substituteParameters(out.pv.dvy_ss), x, state)), 'Vars', {state,w}, 'Outputs', {'dvy_ss'}, 'File', 'Feedback_Linearisation/generatedFunctions/dvy_ss_fun');
+out.pv.dvy_ss_fun = matlabFunction(formula(subs(substituteParameters(out.pv.dvy_ss), x, state)), 'Vars', {state,w}, 'Outputs', {'dvy_ss'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/dvy_ss_fun');
 
 % Define steady state (constant dvy) derivative of dvy
 % This should capture variation of dvy for a given theta_p due to
@@ -642,7 +642,7 @@ if nw==4
         formula(subs(formula(body_vel_control_dtheta_pr), x, state)), ...
         formula(subs(formula(body_vel_control_dw1), x, state)), ...
         formula(subs(formula(body_vel_control_dw2), x, state)), ...
-    'Vars', {state w Kv Kdphi Kr Kw1 Kw2 theta_p_max w1_max w2_max theta_pr fss_minus1_dvy0 vxr vyr dphir K_slow_dtheta_p K_slow_theta_p}, 'Outputs', {'dtheta_pr' 'dw1' 'dw2'}, 'File', 'Feedback_Linearisation/generatedFunctions/body_vel_control_dw1_dw2_dtheta_pr_fun', 'Optimize', false);
+    'Vars', {state w Kv Kdphi Kr Kw1 Kw2 theta_p_max w1_max w2_max theta_pr fss_minus1_dvy0 vxr vyr dphir K_slow_dtheta_p K_slow_theta_p}, 'Outputs', {'dtheta_pr' 'dw1' 'dw2'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/body_vel_control_dw1_dw2_dtheta_pr_fun', 'Optimize', false);
 
 
     %% Velocity controller (inertial frame), constrained theta_p   
@@ -667,7 +667,7 @@ if nw==4
         formula(subs(formula(inertial_vel_control_dtheta_pr), x, state)), ...
         formula(subs(formula(inertial_vel_control_dw1), x, state)), ...
         formula(subs(formula(inertial_vel_control_dw2), x, state)), ...
-    'Vars', {state w Kv Kdphi Kr Kw1 Kw2 theta_p_max w1_max w2_max theta_pr dxr dyr dphir fss_minus1_dvy_mvxdphi K_slow_dtheta_p K_slow_theta_p}, 'Outputs', {'dtheta_pr' 'dw1' 'dw2'}, 'File', 'Feedback_Linearisation/generatedFunctions/inertial_vel_control_dw1_dw2_dtheta_pr_fun', 'Optimize', true);
+    'Vars', {state w Kv Kdphi Kr Kw1 Kw2 theta_p_max w1_max w2_max theta_pr dxr dyr dphir fss_minus1_dvy_mvxdphi K_slow_dtheta_p K_slow_theta_p}, 'Outputs', {'dtheta_pr' 'dw1' 'dw2'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/inertial_vel_control_dw1_dw2_dtheta_pr_fun', 'Optimize', true);
 
 
     % Inertial velocity controller with differential flatness derived perturbations
@@ -698,7 +698,7 @@ if nw==4
         simplify(subs(formula(inertial_vel_control_dw2), formula(vertcat(x{:})), state)), ...
         'Vars', {state w Kvx Kvy Kdphi Kr Kw1 Kw2 theta_p_max w1_max w2_max theta_pr dxr dyr dphir fss_minus1_dvy_f_dvyp K_slow_dtheta_p K_slow_theta_p}, ...
         'Outputs', {'dtheta_pr' 'dw1' 'dw2'}, ...
-        'File', 'Feedback_Linearisation/generatedFunctions/inertial_vel_control_2_dw1_dw2_dtheta_pr_fun', ...
+        'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/inertial_vel_control_2_dw1_dw2_dtheta_pr_fun', ...
         'Optimize', true);
 
 
@@ -717,7 +717,7 @@ if nw==4
         subs(ddxr, x, state), ...
         subs(ddyr, x, state), ...
         subs(ddphir, x, state), ...
-    'Vars', {state K_vr K_p K_dphir K_phi v_max dphi_max dxr dyr dphir xr yr phir K_slow}, 'Outputs', {'ddxr' 'ddyr' 'ddphir'}, 'File', 'Feedback_Linearisation/generatedFunctions/inertial_pos_control_ddxr_ddyr_ddphir_fun', 'Optimize', true);
+    'Vars', {state K_vr K_p K_dphir K_phi v_max dphi_max dxr dyr dphir xr yr phir K_slow}, 'Outputs', {'ddxr' 'ddyr' 'ddphir'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/inertial_pos_control_ddxr_ddyr_ddphir_fun', 'Optimize', true);
 end
 
 %% Nonlinear controllability
@@ -773,15 +773,15 @@ end
 
 
 %% Generate C code
-codegen f_solve_fdvy_theta_p_x  -d ./Feedback_Linearisation/codegen/f_solve_fdvy_theta_p_x -c -args {zeros(8,1), zeros(3,1), 0}
+codegen f_solve_fdvy_theta_p_x  -d CollinearMecanumDrive/Feedback_Linearisation/codegen/f_solve_fdvy_theta_p_x -c -args {zeros(8,1), zeros(3,1), 0}
 
 temp = sym('temp', [8 1]);
-matlabFunction(subs(substituteParameters(out.pz.T), x, temp), 'Vars', {temp}, 'Outputs', {'z'}, 'File', 'Feedback_Linearisation/generatedFunctions/T_x_to_z');
-matlabFunction(substituteParameters(out.pz.uFB), 'Vars', {z,w}, 'Outputs', {'v'}, 'File', 'Feedback_Linearisation/generatedFunctions/uFB');
+matlabFunction(subs(substituteParameters(out.pz.T), x, temp), 'Vars', {temp}, 'Outputs', {'z'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/T_x_to_z');
+matlabFunction(substituteParameters(out.pz.uFB), 'Vars', {z,w}, 'Outputs', {'v'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/uFB');
 
 
 vin = sym('vin', [3 1]);
-matlabFunction(subs(inv(substituteParameters(out.pv.P))*vin, x, substituteParameters(out.pz.Tinv)), 'Vars', {z,vin}, 'Outputs', {'u'}, 'File', 'Feedback_Linearisation/generatedFunctions/Pz_v_to_u');
+matlabFunction(subs(inv(substituteParameters(out.pv.P))*vin, x, substituteParameters(out.pz.Tinv)), 'Vars', {z,vin}, 'Outputs', {'u'}, 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/Pz_v_to_u');
 
      
 codegen T_x_to_z -d ./Feedback_Linearisation/codegen/T_x_to_z -c -args {zeros(8,1)}

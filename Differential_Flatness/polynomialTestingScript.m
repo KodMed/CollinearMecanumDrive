@@ -3,13 +3,13 @@ close all;
 clearvars -except modelData trajectory
 
 % Ensure these are installed and on the path
-addpath('../nestedSortStruct');
+addpath(genpath('../nestedSortStruct'));
 addpath(genpath('../YALMIP-master/'));
 addpath(genpath('../SeDuMi_1_3'));
 addpath(genpath('../matlab2tikz'));
 
 % Optionally use MOSEK solvers
-rmpath('C:\Program Files\Mosek\9.1\toolbox\r2015a');
+%rmpath('C:\Program Files\Mosek\9.1\toolbox\r2015a');
 % addpath('C:\Program Files\Mosek\9.1\toolbox\r2015a');
 
 
