@@ -2,12 +2,16 @@
 ## KodMed Variant
 The code is planned to be modified in order to meet the needs of the robot Cliffhanger. So far the required libraries and the necessary path changes in the code is being made. The code is currently being tested on the MATLAB R2019b and R2021b version.
 In order to run the simulation as is, the following toolboxes of the Matlab must be installed:
--> Motor Control Blockset
--> Symbolic Math Toolbox
--> Matlab Coder
--> Control Systems Toolbox
+- Motor Control Blockset
+- Symbolic Math Toolbox
+- Matlab Coder
+- Control Systems Toolbox.
+
 Required libraries that discussed below are pre installed, however there is a small tweak that needs to be done in MacOS systems.
-In order to build the SeDuMi, which is required for the normal operation of the system, type in the terminal "install_sedumi -rebuild"
+In order to build the SeDuMi, which is required for the normal operation of the system, type in the Matlab Terminal:
+
+"install_sedumi -rebuild"
+
 which will build the SeDuMi_1_3.
 
 
