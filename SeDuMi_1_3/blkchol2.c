@@ -50,16 +50,10 @@ mwIndex blkLDL(const mwIndex neqns, const mwIndex nsuper, const mwIndex *xsuper,
    TIME-CRITICAL PROCEDURE -- isscalarmul(x,alpha,n)
    Computes x *= alpha using BLAS.
    ************************************************************ */
-void isscalarmul(double *x, const double alpha, const mwIndex n)
+void isscalarmul(double *x, double alpha, mwIndex n)
 {
-    mwIndex one=1;
-    #ifdef PC
-    dscal(&n,&alpha,x,&one);
-    #endif
-    #ifdef UNIX
-    dscal_(&n,&alpha,x,&one);
-    #endif
-    return;
+    blasint one=1,nn=n;
+    FORT(dscal)(&nn,&alpha,x,&one);
 }
 
 /* ************************************************************
@@ -69,15 +63,10 @@ void isscalarmul(double *x, const double alpha, const mwIndex n)
      n - length of x.
    RETURNS y = norm(x,inf).
    ************************************************************ */
-double maxabs(const double *x,const mwIndex n)
+double maxabs(const double *x,mwIndex n)
 {
-mwIndex one=1;
-#ifdef PC
-    return fabs(x[idamax(&n,x,&one)]);
-#endif
-#ifdef UNIX
-    return fabs(x[idamax_(&n,x,&one)]);
-#endif
+    blasint one=1,nn=n;
+    return fabs(x[FORT(idamax)(&nn,(double*)x,&one)]);
 }
 
 /* ************************************************************
@@ -124,16 +113,21 @@ void cholonBlk(double *x, double *d, mwIndex m, const mwIndex ncols, const mwInd
    ------------------------------------------------------- */
     xkk = x[inz];
     if(xkk > lb[k]){ /* now xkk > 0 */
-      if(xkk < ub){
+/* ------------------------------------------------------------
+   maxabs is a wrapper for the BLAS IDAMAX Fortran function.
+   IDAMAX finds the first element having maximum absolute
+   value in an array. Only call maxabs with m>1. 
+   ------------------------------------------------------------ */
+      if ((m>1) && (xkk < ub)){
         ubk = maxabs(x+inz+1,m-1) / maxu;
         if(xkk < ubk){
 /* ------------------------------------------------------------
    If we need to add on diagonal, store this in (skipIr, lb(k)).
    ------------------------------------------------------------ */
           skipIr[nskip++] = first + k;
-	  lb[k] = ubk - xkk;           /* amount added on diagonal */
-	  xkk = ubk;
-	}
+          lb[k] = ubk - xkk;           /* amount added on diagonal */
+          xkk = ubk;
+        }
       }
 /* --------------------------------------------------------------
    Set dk = xkk, lkk = 1 (for LDL').

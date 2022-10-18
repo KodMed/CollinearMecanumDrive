@@ -31,10 +31,10 @@ polyOptFuns.findIntersectionOfVelocityConstraint = @(p,vMax) roots(polyder(p) - 
 
 
 %% Generate optimised functions
-polyOptFuns.H = matlabFunction(H, 'Vars', t, 'File', 'generatedFunctions/HFun');
+polyOptFuns.H = matlabFunction(H, 'Vars', t, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/HFun');
 % polyOptFuns.vH = matlabFunction(vH, 'Vars', {t,v}, 'File', 'generatedFunctions/vHFun');
-polyOptFuns.Aeq = matlabFunction(Aeq, 'Vars', t, 'File', 'generatedFunctions/AeqFun');
-polyOptFuns.SDerivatives = matlabFunction(SDerivatives, 'Vars', {t polyCoefs}, 'File', 'generatedFunctions/SDerivativesFun');
+polyOptFuns.Aeq = matlabFunction(Aeq, 'Vars', t, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/AeqFun');
+polyOptFuns.SDerivatives = matlabFunction(SDerivatives, 'Vars', {t polyCoefs}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/SDerivativesFun');
 polyOptFuns.numVar = numel(polyCoefs);
 
 end

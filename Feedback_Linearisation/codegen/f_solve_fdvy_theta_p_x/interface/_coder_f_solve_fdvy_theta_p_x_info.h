@@ -5,7 +5,7 @@
  *
  * _coder_f_solve_fdvy_theta_p_x_info.h
  *
- * Code generation for function '_coder_f_solve_fdvy_theta_p_x_info'
+ * Code generation for function 'f_solve_fdvy_theta_p_x'
  *
  */
 

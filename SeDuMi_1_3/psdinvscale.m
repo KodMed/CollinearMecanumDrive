@@ -1,12 +1,12 @@
-%                                           y = psdinvscale(ud,x,K ,transp)
+function y = psdinvscale(ud,x,K)
+% y = psdinvscale(ud,x,K ,transp)
+%
 % PSDINVSCALE  Computes length lenud (=sum(K.s.^2)) vector y.
 %    Computes y = D(d^{-1}) x with d in K.
 %    Y = Ud' \ X / Ud
 % **********  INTERNAL FUNCTION OF SEDUMI **********
 %
 % See also scaleK, factorK.
-
-function y = psdinvscale(ud,x,K)
 
 % This file is part of SeDuMi 1.3 by Imre Polik and Oleksandr Romanko
 % Copyright (C) 2005 McMaster University, Hamilton, CANADA  (since 1.1)
@@ -37,29 +37,47 @@ function y = psdinvscale(ud,x,K)
 % Foundation, Inc.,  51 Franklin Street, Fifth Floor, Boston, MA
 % 02110-1301, USA
 
-Ks=K.s;
-if ~isempty(Ks)
-    N=sum(Ks.^2);
-    y(N,1)=0;
-    startindices=K.sblkstart-K.mainblks(end)+1;
-    %Sometimes x containts only the PSD part, sometimes the whole thing
-    xstartindices=startindices+(length(x)-N);
-    for i=1:K.rsdpN
-        Ksi=Ks(i);
-        Ksi2=Ksi^2;
-        temp=triu(reshape(ud(startindices(i):startindices(i+1)-1),Ksi,Ksi));
-        if nnz(temp)<0.05*Ksi2;
-            temp=sparse(temp);
-        end
-        X=reshape(x(xstartindices(i):xstartindices(i+1)-1),Ksi,Ksi);
-        if nnz(X)<0.05*Ksi2;
-            X=sparse(X);
-        end
-        y(startindices(i):startindices(i+1)-1)=...
-            temp'...
-            \(X...
-            /temp);
+Ks = K.s;
+if isempty(Ks)
+    y = [];
+    return
+end
+Kq = Ks .* Ks;
+nr = K.rsdpN;
+nc = length(Ks);
+N  = sum(Kq) + sum(Kq(nr+1:end));
+y  = zeros(N,1);
+xi = length(x) - N;
+yi = 0;
+ui = 0;
+for i = 1 : nc
+    ki = Ks(i);
+    qi = Kq(i);
+    TT = ud(ui+1:ui+qi); 
+    ui = ui+qi;
+    if i > nr
+        TT = TT + 1i*ud(ui+1:ui+qi); 
+        ui = ui+qi;
     end
-else
-    y=[];
+    TT = triu(reshape(TT,ki,ki));
+    XX = x(xi+1:xi+qi); 
+    xi = xi+qi;
+    if i > nr
+        XX = XX + 1i*x(xi+1:xi+qi); 
+        xi = xi+qi;
+    end
+    XX = reshape(XX,ki,ki);
+    if nnz(XX) < 0.1 * qi
+        XX = sparse(XX);
+    end
+    XX = TT \ ( XX / TT' );
+    y(yi+1:yi+qi) = real(XX); 
+    yi = yi+qi;
+    if i > nr
+        XX = imag(XX);
+        % Needed, otherwise psdfactor() will sometimes fail.
+        XX(1:ki+1:end) = 0;
+        y(yi+1:yi+qi) = XX; 
+        yi = yi+qi;
+    end
 end

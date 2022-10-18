@@ -12,18 +12,17 @@
 /* Include files */
 #include "f_solve_fdvy_theta_p_x_terminate.h"
 #include "_coder_f_solve_fdvy_theta_p_x_mex.h"
-#include "f_solve_fdvy_theta_p_x.h"
 #include "f_solve_fdvy_theta_p_x_data.h"
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
 void f_solve_fdvy_theta_p_x_atexit(void)
 {
-  emlrtStack st = { NULL,              /* site */
-    NULL,                              /* tls */
-    NULL                               /* prev */
+  emlrtStack st = {
+      NULL, /* site */
+      NULL, /* tls */
+      NULL  /* prev */
   };
-
   mexFunctionCreateRootTLS();
   st.tls = emlrtRootTLSGlobal;
   emlrtEnterRtStackR2012b(&st);
@@ -34,11 +33,11 @@ void f_solve_fdvy_theta_p_x_atexit(void)
 
 void f_solve_fdvy_theta_p_x_terminate(void)
 {
-  emlrtStack st = { NULL,              /* site */
-    NULL,                              /* tls */
-    NULL                               /* prev */
+  emlrtStack st = {
+      NULL, /* site */
+      NULL, /* tls */
+      NULL  /* prev */
   };
-
   st.tls = emlrtRootTLSGlobal;
   emlrtLeaveRtStackR2012b(&st);
   emlrtDestroyRootTLS(&emlrtRootTLSGlobal);

@@ -1,5 +1,5 @@
 function [x,y,info] = sedumi(A,b,c,K,pars)
-%      [x,y,info] = sedumi(A,b,c,K,pars)
+% [x,y,info] = sedumi(A,b,c,K,pars)
 %
 % SEDUMI  Self-Dual-Minimization/ Optimization over self-dual homogeneous
 %         cones.
@@ -217,8 +217,8 @@ function [x,y,info] = sedumi(A,b,c,K,pars)
 
 walltime0=now;
 cputime0=cputime;
-%ADA is usually very large, so we make it global
-global ADA
+%ADA_sedumi_ is usually very large, so we make it global
+global ADA_sedumi_
 % ************************************************************
 % INITIALIZATION
 % ************************************************************
@@ -264,7 +264,11 @@ end
 if N*m<100000
     %Test if Ax=b is feasible at all
     %turn off the rank deficient warning for now
-    warning off all
+    if (exist ('OCTAVE_VERSION', 'builtin') == 5)
+      s = warning('off','Octave:singular-matrix');
+    else
+      s = warning('off','MATLAB:singularMatrix');
+    end
     y=[A;b']\[zeros(N,1);1];
     if abs(y'*b-1) < 1e-10 && norm(A*y) < 1e-10
         %Infeasibility certificate found
@@ -272,6 +276,8 @@ if N*m<100000
         x=[];
         %A dual improving direction could be computed easily
         my_fprintf(pars.fid,'The problem is primal infeasible, there is no x such that Ax=b.\n')
+        %Return warning state
+        warning(s);
         return
     end
     
@@ -294,8 +300,10 @@ if N*m<100000
         %TODO: A preprocessing routine should be added here to remove the dependent
         %rows from A and b
     end
+    %Return warning state
+    warning(s);
 end
-if prep.cpx.dim>0
+if K.cdim>0
     origcoeff=[];      % No error measures for complex problems.
 end
 lponly = (K.l == length(c));
@@ -303,7 +311,7 @@ pars = checkpars(pars,lponly);
 % ----------------------------------------
 % Print welcome
 % ----------------------------------------
-my_fprintf(pars.fid,'SeDuMi 1.3 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.\n');
+my_fprintf(pars.fid,'SeDuMi 1.3.5 by AdvOL, 2005-2008 and Jos F. Sturm, 1998-2003.\n');
 % ----------------------------------------
 % Print statistics of cone-problem
 % ----------------------------------------
@@ -327,29 +335,17 @@ my_fprintf(pars.fid,'theta = %5.3f, beta = %5.3f\n',pars.theta,pars.beta);
 % Print preprocessing information
 % --------------------------------------------------
 if pars.prep==1
-    if isfield(prep,'sdp')
-        blockcount=0;
-        varcount=0;
-        for sdpind=1:length(prep.sdp)
-            if prep.sdp{sdpind}(1)==1
-                blockcount=blockcount+1;
-                varcount=varcount+prep.sdp{sdpind}(2);
-            end
-        end
-        if blockcount>0
-            my_fprintf(pars.fid,'Detected %i diagonal SDP block(s) with %i linear variables\n',blockcount,varcount);
-        end
+    if isfield(prep,'sdiag')
+        my_fprintf(pars.fid,'Detected %i diagonal SDP block(s) with %i linear variables\n',nnz(prep.sdiag),sum(prep.sdiag));
     end
-    if isfield(prep,'freeblock1') & ~isempty(prep.freeblock1)
+    if isfield(prep,'freeblock1') && ~isempty(prep.freeblock1)
         my_fprintf(pars.fid,'Detected %i free variables in the linear part\n',length(prep.freeblock1));
     end
-    if isfield(prep,'Kf') & prep.Kf>0
-        switch pars.free
-            case 0
-                my_fprintf(pars.fid,'Split %i free variables\n',prep.Kf);
-            case 1
-                my_fprintf(pars.fid,'Put %i free variables in a quadratic cone\n',prep.Kf);
-        end
+    if isfield(prep,'freeL')
+        my_fprintf(pars.fid,'Split %i free variables\n',prep.freeL);
+    end
+    if isfield(prep,'freeQ')
+        my_fprintf(pars.fid,'Put %i free variables in a quadratic cone\n',prep.freeQ);
     end
 end
 % --------------------------------------------------
@@ -381,7 +377,7 @@ end
 % ----------------------------------------
 % Get nz-pattern of ADA.
 % ----------------------------------------
-ADA = getsymbada(A,Ablkjc,DAt,K.sblkstart);
+ADA_sedumi_ = getsymbada(A,Ablkjc,DAt,K.sblkstart);
 % ----------------------------------------
 % Ordering and symbolic factorization of ADA.
 % ----------------------------------------
@@ -400,7 +396,7 @@ n = length(vfrm.lab);                         % order of K
 merit = (sum(R.w) + max(R.sd,0))^2 * y0 / R.b0;  % Merit function
 my_fprintf(pars.fid,'eqs m = %g, order n = %g, dim = %g, blocks = %g\n',...
     length(b),n,length(c),1 + length(K.q) + length(K.s));
-my_fprintf(pars.fid,'nnz(A) = %d + %d, nnz(ADA) = %d, nnz(L) = %d\n',nnz(A),nnz(dense.A), nnz(ADA), nnz(L.L));
+my_fprintf(pars.fid,'nnz(A) = %d + %d, nnz(ADA) = %d, nnz(L) = %d\n',nnz(A),nnz(dense.A), nnz(ADA_sedumi_), nnz(L.L));
 if ~isempty(dense.cols)
     my_fprintf(pars.fid,'Handling %d + %d dense columns.\n',...
         length(dense.cols),length(dense.q));
@@ -433,9 +429,9 @@ while STOP == 0
         keyboard
     end
     
-    if pars.stepdif==2 & ...
-            (iter>20 | (iter>1 & (err.kcg + Lsd.kcg>3)) | ...
-            (iter>5 & abs(1-feasratio)<0.05) )
+    if pars.stepdif==2 && ...
+            (iter>20 || (iter>1 && (err.kcg + Lsd.kcg>3)) || ...
+            (iter>5 && abs(1-feasratio)<0.05) )
         pars.stepdif=1;
     end
     % --------------------------------------------------
@@ -449,15 +445,15 @@ while STOP == 0
         %This will update the global ADA variable
         absd=getada(A,K,d,DAt);
     else
-        ADA = getada1(ADA, A, Ablkjc(:,3), Aord.lqperm, d, K.qblkstart);
-        ADA = getada2(ADA, DAt, Aord, K);
-        [ADA,absd] = getada3(ADA, A, Ablkjc(:,3), Aord, invcholfac(d.u, K, d.perm), K);
+        ADA_sedumi_ = getada1(ADA_sedumi_, A, Ablkjc(:,3), Aord.lqperm, d, K.qblkstart);
+        ADA_sedumi_ = getada2(ADA_sedumi_, DAt, Aord, K);
+        [ADA_sedumi_,absd] = getada3(ADA_sedumi_, A, Ablkjc(:,3), Aord, invcholfac(d.u, K, d.perm), K);
     end
     %
     % ------------------------------------------------------------
     % Block Sparse Cholesky: ADA(L.perm,L.perm) = L.L*diag(L.d)*L.L'
     % ------------------------------------------------------------
-    [L.L,L.d,L.skip,L.add] = blkchol(L,ADA,pars.chol,absd);
+    [L.L,L.d,L.skip,L.add] = blkchol(L,ADA_sedumi_,pars.chol,absd);
     % ------------------------------------------------------------
     % Factor dense columns
     % ------------------------------------------------------------
@@ -496,13 +492,13 @@ while STOP == 0
     meritOld = merit;
     merit = (sum(R.w) + max(R.sd,0))^2 * y0 / R.b0;
     rate = merit / meritOld;
-    if (rate >= 0.9999) & (wr.desc == 1)
+    if (rate >= 0.9999) && (wr.desc == 1)
         % ------------------------------------------------------------
         % STOP = -1  --> Stop due to numerical problems
         % ------------------------------------------------------------
         STOP = -1;                  % insuf. progress in descent direction.
         iter = iter - 1;
-        y0 = y0Old;
+        y0 = y0Old; %#ok
         my_fprintf(pars.fid,'Run into numerical problems.\n');
         break
     end
@@ -521,23 +517,23 @@ while STOP == 0
     my_fprintf(pars.fid,' %2.0f : %10.2E %8.2E %5.3f %6.4f %6.4f %6.4f %6.2f %2d %2d  ',...
         iter,by/x0,merit,wr.delta,rate,relt.p,relt.d,feasratio,err.kcg, Lsd.kcg);
     if pars.vplot == 1
-        vlist = [vlist vfrm.lab/sqrt((R.b0*y0)/n)];
-        ratelist = [ratelist rate];
+        vlist = [vlist vfrm.lab/sqrt((R.b0*y0)/n)]; %#ok
+        ratelist = [ratelist rate]; %#ok
     end
     % ----------------------------------------
     % If we get in superlinear region of LP,
     % try to guess optimal solution:
     % ----------------------------------------
-    if lponly & (rate < 0.05)
+    if lponly && (rate < 0.05)
         [xsol,ysol] = optstep(A,b,c, y0,y,d,v,dxmdz, ...
-            K,L,symLden,dense, Ablkjc,Aord,ADA,DAt, feasratio, R,pars);
+            K,L,symLden,dense, Ablkjc,Aord,ADA_sedumi_,DAt, feasratio, R,pars);
         if ~isempty(xsol)
             STOP = 2;                   % Means that we guessed right !!
             feasratio = 1 - 2*(xsol(1)==0);
             break
         end
-    elseif (by > 0) & (abs(1+feasratio) < 0.05) & (R.b0*y0 < 0.5)
-        if max(eigK(full(qreshape(Amul(A,dense,y,1),1,K)),K)) <= pars.eps * by
+    elseif (by > 0) && (abs(1+feasratio) < 0.05) && (R.b0*y0 < 0.5)
+        if maxeigK(Amul(A,dense,y,1),K) <= pars.eps * by
             STOP = 3;                   % Means Farkas solution found !
             break
         end
@@ -572,7 +568,7 @@ while STOP == 0
     end
 end % while STOP == 0.
 my_fprintf(pars.fid,'\n');
-clear ADA 
+clear ADA_sedumi_ 
 nnzLadd=nnz(L.add);
 nnzLskip=nnz(L.skip);
 normLL=full(max(max(abs(L.L))));
@@ -613,8 +609,7 @@ clear A
 % Determine infeasibility
 % ------------------------------------------------------------
 pinf = norm(x0*b-Ax);
-z = qreshape(Ay-x0*c,1,K);
-dinf = max(eigK(z,K));
+dinf = maxeigK(Ay-x0*c,K);
 if x0 > 0
     relinf = max(pinf / (1+R.maxb), dinf / (1+R.maxc)) / x0;
     % ------------------------------------------------------------
@@ -622,7 +617,7 @@ if x0 > 0
     % ------------------------------------------------------------
     if relinf > pars.eps
         pdirinf = norm(Ax);
-        ddirinf = max(eigK(qreshape(Ay,1,K),K));
+        ddirinf = maxeigK(Ay,K);
         if cx < 0.0
             reldirinf = pdirinf / (-cx);
         else
@@ -635,7 +630,7 @@ if x0 > 0
         % If the quality of the Farkas solution is good and better than
         % the approx. feasible soln, set x0=0: Farkas solution found.
         % ------------------------------------------------------------
-        if (reldirinf < pars.eps) | (relinf > max(pars.bigeps, reldirinf))
+        if (reldirinf < pars.eps) || (relinf > max(pars.bigeps, reldirinf))
             x0 = 0.0;
             pinf = pdirinf;
             dinf = ddirinf;
@@ -645,6 +640,7 @@ end % x0 > 0
 % ------------------------------------------------------------
 % Interpret the solution as feasible:
 % ------------------------------------------------------------
+info.r0 = Inf;
 if x0 > 0
     x = x / x0;
     y = y / x0;
@@ -654,12 +650,19 @@ if x0 > 0
     by = by / x0;
     normx = normx / x0;
     normy = normy / x0;
-    if cx == 0.0           % Dual feasibility problem
-        sigdig = -log(-by/(R.maxb*normy +1E-10 * x0)) / log(10);
+    if cx <= by                % zero or negative duality gap
+        r0 = 0;
+    elseif cx == 0.0           % Dual feasibility problem
+        r0 = -by/(R.maxb*normy +1E-10 * x0);
     elseif by == 0.0           % Primal feasibility problem
-        sigdig = -log(cx / (R.maxc*normx +1E-10 * x0)) / log(10);
+        r0 = cx / (R.maxc*normx +1E-10 * x0);
     else                       % Optimization problem
-        sigdig = -log(abs(cx-by)/(abs(by) + 1E-5 * (x0+abscx))) / log(10);
+        r0 = (cx-by)/(abs(by) + 1E-5 * (x0+abscx));
+    end
+    if r0 == 0
+        sigdig = Inf;
+    else
+        sigdig = -log10(r0);
     end
     my_fprintf(pars.fid,...
         'iter seconds digits       c*x               b*y\n');
@@ -670,23 +673,26 @@ if x0 > 0
     % ------------------------------------------------------------
     % Determine level of numerical problems with x0>0 (feasible)
     % ------------------------------------------------------------
-    if STOP == -1
-        r0 = max([10^(-sigdig); pinf;dinf] ./ [1; 1+R.maxb+(1E-3)*R.maxRb;...
+    info.r0 = max([r0 ; pinf;dinf] ./ [1; 1+R.maxb+(1E-3)*R.maxRb;...
             1+R.maxc+(1E-3)*R.maxRc]);
-        if r0 > pars.bigeps
+    if STOP == -1
+        if info.r0 > pars.bigeps
             my_fprintf(pars.fid, 'No sensible solution found.\n');
             info.numerr = 2;                          % serious numerical error
-        elseif r0 > pars.eps
+        elseif info.r0 > pars.eps
             info.numerr = 1;                          % moderate numerical error
         else
             info.numerr = 0;                          % achieved desired accuracy
         end
+    else
+        info.r0 = min( info.r0, pars.eps );
     end
 else  % (if x0>0)
     % --------------------------------------------------
     % Infeasible problems: pinf==norm(Ax), dinf==max(eigK(At*y,K)).
     % --------------------------------------------------
     if pinf < -pars.bigeps * cx
+        info.r0 = abs(pinf/cx);
         info.dinf = 1;
         abscx = -cx;
         pinf = pinf / abscx;
@@ -695,6 +701,7 @@ else  % (if x0>0)
         my_fprintf(pars.fid, 'Dual infeasible, primal improving direction found.\n');
     end
     if dinf < pars.bigeps * by
+        info.r0 = abs(dinf/by);
         info.pinf = 1;
         dinf = dinf / by;
         normy = normy / by;
@@ -711,7 +718,7 @@ else  % (if x0>0)
         my_fprintf(pars.fid, 'Failed: no sensible solution/direction found.\n');
         info.numerr = 2;
     elseif STOP == -1
-        if (pinf > -pars.eps * cx) & (dinf > pars.eps * by)
+        if (pinf > -pars.eps * cx) && (dinf > pars.eps * by)
             info.numerr = 1;
         else
             info.numerr = 0;
@@ -724,7 +731,7 @@ end
 % - bring ysol into complex format, indicated by K.ycomplex.
 % - at 0's in ysol where rows where removed.
 % ----------------------------------------'
-[x,y,K] = posttransfo(x,y,prep,K,pars);
+[x,y,K] = posttransfo(x,y,prep,K,pars); %#ok
 % Detailed timing
 %Preprocessing+IPM+Postprocessing
 info.timing=86400*[walltime1-walltime0 walltime2-walltime1 now-walltime2];
@@ -775,22 +782,18 @@ if ~isempty(origcoeff)
     info.err(1)=norm(x'*(origcoeff.At)-(origcoeff.b)',2)/(1+normb);
     %Let us get rid of the K.f part, since the free variables don't make
     %any difference in the cone infeasibility.
-    %origcoeff.K.f=0;
-
     if origcoeff.K.f<length(origcoeff.c)
         %not all primal variables are free
         %     Primal cone infeasibility
-        info.err(2)=max(0,-min(eigK(full(x(origcoeff.K.f+1:end)),origcoeff.K))/(1+normb));
+        tempK = origcoeff.K;
+        tempK.f = 0;
+        info.err(2)=max(0,-min(eigK(full(x(origcoeff.K.f+1:end)),tempK)/(1+normb)));
         %     Dual cone infeasibility
-        info.err(4)=max(0,-min(eigK(full(s(origcoeff.K.f+1:end)),origcoeff.K))/(1+normc));
-        
-    else
-        info.err(2)=0;
-        info.err(4)=0;
+        info.err(4)=max(0,-min(eigK(full(s(origcoeff.K.f+1:end)),tempK)/(1+normc)));
     end
     %     Dual infeasibility
-    %info.err(3)=0.0; %s is not maintained explicitely
-        %     Relative duality gap
+    info.err(3)=0.0; % not maintained explicitly
+    %     Relative duality gap
     info.err(5)=(cx-by)/(1+abs(cx)+abs(by));
     %     Relative complementarity
     info.err(6)=xs/(1+abs(cx)+abs(by));
@@ -800,5 +803,3 @@ if ~isempty(origcoeff)
     my_fprintf(pars.fid,'%2.2E  ',info.err)
     my_fprintf(pars.fid,'\n')
 end
-
-

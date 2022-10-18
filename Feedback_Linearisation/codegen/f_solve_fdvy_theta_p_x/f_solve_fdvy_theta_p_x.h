@@ -12,17 +12,17 @@
 #pragma once
 
 /* Include files */
+#include "rtwtypes.h"
+#include "emlrt.h"
+#include "mex.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mex.h"
-#include "emlrt.h"
-#include "rtwtypes.h"
-#include "f_solve_fdvy_theta_p_x_types.h"
 
 /* Function Declarations */
-void f_solve_fdvy_theta_p_x(const emlrtStack *sp, const real_T in1[8], const
-  real_T in2[3], real_T dvy, real_T *fun, real_T *dFun);
+void f_solve_fdvy_theta_p_x(const emlrtStack *sp, const real_T in1[8],
+                            const real_T in2[3], real_T dvy, real_T *fun,
+                            real_T *dFun);
 
 /* End of code generation (f_solve_fdvy_theta_p_x.h) */

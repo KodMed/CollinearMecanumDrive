@@ -12,70 +12,59 @@
 /* Include files */
 #include "_coder_f_solve_fdvy_theta_p_x_mex.h"
 #include "_coder_f_solve_fdvy_theta_p_x_api.h"
-#include "f_solve_fdvy_theta_p_x.h"
 #include "f_solve_fdvy_theta_p_x_data.h"
 #include "f_solve_fdvy_theta_p_x_initialize.h"
 #include "f_solve_fdvy_theta_p_x_terminate.h"
-
-/* Function Declarations */
-MEXFUNCTION_LINKAGE void c_f_solve_fdvy_theta_p_x_mexFun(int32_T nlhs, mxArray
-  *plhs[2], int32_T nrhs, const mxArray *prhs[3]);
+#include "rt_nonfinite.h"
 
 /* Function Definitions */
-void c_f_solve_fdvy_theta_p_x_mexFun(int32_T nlhs, mxArray *plhs[2], int32_T
-  nrhs, const mxArray *prhs[3])
+void f_solve_fdvy_theta_p_x_mexFunction(int32_T nlhs, mxArray *plhs[2],
+                                        int32_T nrhs, const mxArray *prhs[3])
 {
+  emlrtStack st = {
+      NULL, /* site */
+      NULL, /* tls */
+      NULL  /* prev */
+  };
   const mxArray *outputs[2];
   int32_T b_nlhs;
-  emlrtStack st = { NULL,              /* site */
-    NULL,                              /* tls */
-    NULL                               /* prev */
-  };
-
   st.tls = emlrtRootTLSGlobal;
-
   /* Check for proper number of arguments. */
   if (nrhs != 3) {
     emlrtErrMsgIdAndTxt(&st, "EMLRT:runTime:WrongNumberOfInputs", 5, 12, 3, 4,
                         22, "f_solve_fdvy_theta_p_x");
   }
-
   if (nlhs > 2) {
     emlrtErrMsgIdAndTxt(&st, "EMLRT:runTime:TooManyOutputArguments", 3, 4, 22,
                         "f_solve_fdvy_theta_p_x");
   }
-
   /* Call the function. */
   f_solve_fdvy_theta_p_x_api(prhs, nlhs, outputs);
-
   /* Copy over outputs to the caller. */
   if (nlhs < 1) {
     b_nlhs = 1;
   } else {
     b_nlhs = nlhs;
   }
-
-  emlrtReturnArrays(b_nlhs, plhs, outputs);
+  emlrtReturnArrays(b_nlhs, &plhs[0], &outputs[0]);
 }
 
-void mexFunction(int32_T nlhs, mxArray *plhs[], int32_T nrhs, const mxArray
-                 *prhs[])
+void mexFunction(int32_T nlhs, mxArray *plhs[], int32_T nrhs,
+                 const mxArray *prhs[])
 {
-  mexAtExit(f_solve_fdvy_theta_p_x_atexit);
-
+  mexAtExit(&f_solve_fdvy_theta_p_x_atexit);
   /* Module initialization. */
   f_solve_fdvy_theta_p_x_initialize();
-
   /* Dispatch the entry-point. */
-  c_f_solve_fdvy_theta_p_x_mexFun(nlhs, plhs, nrhs, prhs);
-
+  f_solve_fdvy_theta_p_x_mexFunction(nlhs, plhs, nrhs, prhs);
   /* Module termination. */
   f_solve_fdvy_theta_p_x_terminate();
 }
 
 emlrtCTX mexFunctionCreateRootTLS(void)
 {
-  emlrtCreateRootTLS(&emlrtRootTLSGlobal, &emlrtContextGlobal, NULL, 1);
+  emlrtCreateRootTLSR2021a(&emlrtRootTLSGlobal, &emlrtContextGlobal, NULL, 1,
+                           NULL);
   return emlrtRootTLSGlobal;
 }
 

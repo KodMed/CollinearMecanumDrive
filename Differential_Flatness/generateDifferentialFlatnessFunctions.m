@@ -139,7 +139,7 @@ if generatePerturbationFunctions
     
     matlabFunction(dxp, dyp, vxp, vyp, dvxp, dvyp, ddvxp, ddvyp ...
         , 'Vars', [dxr dyr phir dphir] ...
-        , 'File', 'Feedback_Linearisation/generatedFunctions/calculateInertialVelocityPerturbations.m');
+        , 'File', 'CollinearMecanumDrive/Feedback_Linearisation/generatedFunctions/calculateInertialVelocityPerturbations.m');
 end
 
 
@@ -173,11 +173,11 @@ pvdv = simplify(subs(formula(pvdv), Sold, Snew));
 u = subs(formula(u), Sold, Snew);
 
 %% Convert symbolic expressions to matlab functions
-pvdvuFun = matlabFunction(pvdv,u, 'Vars', {Snew(:,1), Snew(:,2), Snew(:,3)}, 'Outputs', {'pvdv','u'}, 'File', 'Differential_Flatness/generatedFunctions/pvdvu', 'Optimize', true);
+pvdvuFun = matlabFunction(pvdv,u, 'Vars', {Snew(:,1), Snew(:,2), Snew(:,3)}, 'Outputs', {'pvdv','u'}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/pvdvu', 'Optimize', true);
 
 
 %% Generate code
-pvuFun = matlabFunction(pvdv(1:8),u, 'Vars', {Snew(:,1), Snew(:,2), Snew(:,3)}, 'Outputs', {'pv','u'}, 'File', 'Differential_Flatness/generatedFunctions/pvu', 'Optimize', true);
+pvuFun = matlabFunction(pvdv(1:8),u, 'Vars', {Snew(:,1), Snew(:,2), Snew(:,3)}, 'Outputs', {'pv','u'}, 'File', 'CollinearMecanumDrive/Differential_Flatness/generatedFunctions/pvu', 'Optimize', true);
 % codegen pvu -d ./Differential_Flatness/codegen/pvu -c -args {zeros(size(Snew(:,1))) zeros(size(Snew(:,2))) zeros(size(Snew(:,3)))}
 
 

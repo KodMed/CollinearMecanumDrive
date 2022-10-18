@@ -1,4 +1,6 @@
+function L = symbchol()
 %                                                          L = symbchol(X)
+%
 % SYMBCHOL Symbolic block sparse Cholesky factorization.
 %   L = symbchol(X) returns a structure L that can be used
 %   by the efficient block sparse Cholesky solver SPARCHOL.
@@ -23,9 +25,6 @@
 %
 % See also sparchol, sparfwslv, sparbwslv, symbfact, symmmd, chol.
 
-function L = symbchol()
-
-%
 % This file is part of SeDuMi 1.1 by Imre Polik and Oleksandr Romanko
 % Copyright (C) 2005 McMaster University, Hamilton, CANADA  (since 1.1)
 %
@@ -60,8 +59,8 @@ function L = symbchol()
 % Enter here the cache-size in KB, for shaping
 % optimal dense blocks of floats.
 % ----------------------------------------
-global ADA
-if ~issparse(ADA)
+global ADA_sedumi_
+if ~issparse(ADA_sedumi_)
     error('X should be a sparse symmetric matrix')
 end
 cachsz = 512;
@@ -69,13 +68,13 @@ cachsz = 512;
 % Compute multiple minimum degree ordering. 
 % If the matrix is actually dense we don't bother.
 % ----------------------------------------
-if spars(ADA)<1
-    perm = ordmmdmex(ADA);
-    L = symfctmex(ADA,perm);
+if spars(ADA_sedumi_)<1
+    perm = ordmmdmex(ADA_sedumi_);
+    L = symfctmex(ADA_sedumi_,perm);
 else
-    L.perm=(1:size(ADA,1))';
-    L.L=sparse(tril(ones(size(ADA))));
-    L.xsuper=[1;size(ADA,1)+1];
+    L.perm=(1:size(ADA_sedumi_,1))';
+    L.L=sparse(tril(ones(size(ADA_sedumi_))));
+    L.xsuper=[1;size(ADA_sedumi_,1)+1];
 end
 % ----------------------------------------
 % Symbolic Cholesky factorization structures, stored in L.

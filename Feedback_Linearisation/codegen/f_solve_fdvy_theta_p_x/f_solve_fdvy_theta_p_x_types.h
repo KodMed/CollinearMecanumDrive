@@ -5,7 +5,7 @@
  *
  * f_solve_fdvy_theta_p_x_types.h
  *
- * Code generation for function 'f_solve_fdvy_theta_p_x_types'
+ * Code generation for function 'f_solve_fdvy_theta_p_x'
  *
  */
 
@@ -13,5 +13,6 @@
 
 /* Include files */
 #include "rtwtypes.h"
+#include "emlrt.h"
 
 /* End of code generation (f_solve_fdvy_theta_p_x_types.h) */

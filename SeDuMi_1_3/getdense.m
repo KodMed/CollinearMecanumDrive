@@ -1,4 +1,6 @@
-%                             [dense,Adotdden] = getdense(At,Ablkjc,K,pars)
+function [dense,Adotdden] = getdense(At,Ablkjc,K,pars)
+% [dense,Adotdden] = getdense(At,Ablkjc,K,pars)
+%
 % GETDENSE  Creates dense.{l,cols,q}.
 %   Try to find small proportion of the cone primitives that appear
 %   in a large proportion of the primal constraints.
@@ -7,10 +9,6 @@
 %
 % See also sedumi
 
-
-function [dense,Adotdden] = getdense(At,Ablkjc,K,pars)
-
-%
 % This file is part of SeDuMi 1.1 by Imre Polik and Oleksandr Romanko
 % Copyright (C) 2005 McMaster University, Hamilton, CANADA  (since 1.1)
 %
@@ -82,12 +80,12 @@ end
 % ------------------------------------------------------------
 dense.cols = find(colnz > pars.denf * spquant);     %dense LP, Q-blk, Q-cols
 dense.q = find(colnz(i1:i2-1) > pars.denf * spquant);        %dense Q-blks
-dense.l = length(find(dense.cols < i1));            %#dense LP cols.
+dense.l = length(find(dense.cols < i1));            %dense LP cols.
 % ----------------------------------------
 % The number of dense columns should be small relative to
 % the number of constraints - otherwise we better do 1 full Chol.
 % ----------------------------------------
-if length(dense.cols) > m / 2;
+if length(dense.cols) > m / 2
     dense.l = 0; dense.cols = []; dense.q = [];
 end
 if isempty(dense.q)
