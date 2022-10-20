@@ -12,7 +12,7 @@ In order to build the SeDuMi, which is required for the normal operation of the 
 
 "install_sedumi -rebuild"
 
-which will build the SeDuMi_1_3.
+which will build the SeDuMi_1_3. This requies a C compiler like xcode in MacOS.
 
 
 ## About
